@@ -19,10 +19,10 @@ The ggscala project is set up with http://code.google.com/p/simple-build-tool/[s
 and http://www.scalatest.org/[ScalaTest].
 
 To get started at the command-line:
-. cd ggscala
-. sbt update
-. sbt compile
-. sbt test 
+1. cd ggscala
+2. sbt update
+3. sbt compile
+4. sbt test 
 
 There's also an eclipse project for the Scala IDE plugin.
 
