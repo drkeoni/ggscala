@@ -19,6 +19,7 @@ The ggscala project is set up with http://code.google.com/p/simple-build-tool/[s
 and http://www.scalatest.org/[ScalaTest].
 
 To get started at the command-line:
+
 1. cd ggscala
 2. sbt update
 3. sbt compile
