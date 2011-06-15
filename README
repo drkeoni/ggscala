@@ -1,0 +1,20 @@
+///////////////////////////////////////////////
+This README file is an asciidoc-formatted file
+http://www.methods.co.nz/asciidoc/
+///////////////////////////////////////////////
+
+README for ggscala
+==================
+Jon Sorenson <jon_m_sorenson@yahoo.com>
+:Author Initials: JMS
+:toc:
+
+ggscala is an scala implementation of the Grammar of Graphics formalism introduced
+by http://www.cs.uic.edu/~wilkinson/TheGrammarOfGraphics/GOG.html[Leland Wilkinson] 
+and made popular by Hadley Wickham's R package http://had.co.nz/ggplot2/[ggplot2].
+
+Reuse
+~~~~~
+This code is open-source and readily reusable.  See LICENSE.
+
+(C) Copyright 2011, ggscala.org
