@@ -15,7 +15,16 @@ and made popular by Hadley Wickham's R package http://had.co.nz/ggplot2/[ggplot2
 
 Setup
 ~~~~~
-The ggscala project is set up with sbt and ScalaTest.  
+The ggscala project is set up with http://code.google.com/p/simple-build-tool/[sbt]
+and http://www.scalatest.org/[ScalaTest].
+
+To get started at the command-line:
+. cd ggscala
+. sbt update
+. sbt compile
+. sbt test 
+
+There's also an eclipse project for the Scala IDE plugin.
 
 Reuse
 ~~~~~
