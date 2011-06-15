@@ -13,6 +13,10 @@ ggscala is an scala implementation of the Grammar of Graphics formalism introduc
 by http://www.cs.uic.edu/~wilkinson/TheGrammarOfGraphics/GOG.html[Leland Wilkinson] 
 and made popular by Hadley Wickham's R package http://had.co.nz/ggplot2/[ggplot2].
 
+Setup
+~~~~~
+The ggscala project is set up with sbt and ScalaTest.  
+
 Reuse
 ~~~~~
 This code is open-source and readily reusable.  See LICENSE.
