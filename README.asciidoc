@@ -9,7 +9,7 @@ Jon Sorenson <jon_m_sorenson@yahoo.com>
 :Author Initials: JMS
 :toc:
 
-ggscala is an scala implementation of the Grammar of Graphics formalism introduced
+*ggscala* is an scala implementation of the Grammar of Graphics formalism introduced
 by http://www.cs.uic.edu/~wilkinson/TheGrammarOfGraphics/GOG.html[Leland Wilkinson] 
 and made popular by Hadley Wickham's R package http://had.co.nz/ggplot2/[ggplot2].
 
@@ -20,10 +20,10 @@ and http://www.scalatest.org/[ScalaTest].
 
 To get started at the command-line:
 
-1. cd ggscala
-2. sbt update
-3. sbt compile
-4. sbt test 
+1. +cd ggscala+
+2. +sbt update+
+3. +sbt compile+
+4. +sbt test+
 
 There's also an eclipse project for the Scala IDE plugin.
 
