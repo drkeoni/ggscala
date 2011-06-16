@@ -28,7 +28,17 @@ object MultiColumnSource
     def names : Seq[String]
     /** Subclasses can override to provide the total number of columns */
     def ncol = 0
-    
+    // The dynamic typing nature of MultiColumnSource makes it very difficult (impossible?) to return a
+    // statically typed row.
+    /** Iterate over rows of this column source.  Rows are represented by Seq[Any].
+     *  The order of elements is defined by the order of columns as returned by 
+     *  names.
+     */
+    def rowIterator : Iterator[IndexedSeq[Any]] = new Iterator[IndexedSeq[Any]] {
+      val _iterators = names.map( $a(_).iterator )
+      def hasNext = _iterators.forall(_.hasNext)
+      def next = _iterators.foldLeft(new ArrayBuffer[Any]())( (l,i) => l += i.next )
+    }
   }
   
   // TODO: still playing with the type signature here
