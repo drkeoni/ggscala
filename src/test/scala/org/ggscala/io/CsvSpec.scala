@@ -20,6 +20,8 @@ class SimpleCsvSpec extends FlatSpec with ShouldMatchers {
   	for( v <- csv.iterator )
   	{
   	  v should have length (2)
+  	  // Scala's static type system already asserts the following
+  	  // but it's fun to test
   	  for( v2 <- v )
   	    v2 should have { 'class (classOf[String]) }
   	}

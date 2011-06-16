@@ -23,6 +23,7 @@ object Factor
     extends DataVector[Factor] 
     with FactorFactory
   {
+    override type DataType = Factor
     // map strings to the underlying Factor flyweights
     private val str2factor = new HashMap[String,Factor]
     // map ids to the string labels
@@ -42,6 +43,13 @@ object Factor
         currentId += 1
         f
       }
+    
+    /**
+     * When concatenating two vectors of factors we marshal back to string and 
+     * then back to factors to normalize the factors (simple appending wouldn't work).
+     */
+    def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) =
+      new FactorVector( (_values.iterator ++ data.iterator).toArray.map( _.toString ) )
     
     override def factorToString(id:Int) = id2str(id)
     override def iterator = _values.iterator

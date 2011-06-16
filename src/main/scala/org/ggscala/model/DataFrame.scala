@@ -26,27 +26,35 @@ object DataFrame {
     }
     private def syncIds = columns.zipWithIndex.foreach { case (c,i) => id2num(c.id) = i }
     
-    def apply( key:String ) : DataFrameColumn = columns( id2num(key) )
+    def apply( key:String ) : DataColumn = columns( id2num(key) )
     
-    def $s( key:String ) = this( key ).data.asInstanceOf[StringVector]
-    def $d( key:String ) = this( key ).data.asInstanceOf[DoubleVector]
-    def $f( key:String ) = this( key ).data.asInstanceOf[FactorVector]
+    private def keyAs[T]( key:String ) = this( key ).data.asInstanceOf[T]
+    private def keyAs[T]( i:Int ) = columns(i).data.asInstanceOf[T]
+    def $a( key:String ) = keyAs[ArrayDataVector[Any]](key)
+    def $s( key:String ) = keyAs[StringVector](key)
+    def $d( key:String ) = keyAs[DoubleVector](key)
+    def $f( key:String ) = keyAs[FactorVector](key)
     
     def names = columns.map(_.id)
     
     override def ncol = columns.length
     
-    def rbind( data:MemoryDataFrame ) =
+    def rbind( that:MemoryDataFrame ) =
     {
       // assert both data frames have same number of columns
-      assert( data.ncol == this.ncol )
-      // assert both data frames have same column IDs
-      (columns zip data.columns).foreach { case (c1,c2) => assert( c1.id==c2.id ) }
+      assert( that.ncol == this.ncol )
+      // assert both data frames have same column IDs and types
+      (columns zip that.columns).foreach { case (c1,c2) => assert( c1.id==c2.id ); assert( c1._type==c2._type) }
       val mdf = new MemoryDataFrame( colTypes )
       mdf.setIds( columns map (_.id) )
       for( i <- 0 until columns.length )
-        mdf.columns(i).data = 
-          anyArrayToDataVector( (columns(i).data ++ data.columns(i).data).toArray, columns(i)._type )
+      {
+        mdf.columns(i).data = columns(i)._type match {
+          case StringTypeCode => keyAs[StringVector](i).cbind( that.keyAs[StringVector](i) )
+          case DoubleTypeCode => keyAs[DoubleVector](i).cbind( that.keyAs[DoubleVector](i) )
+          case FactorTypeCode => keyAs[FactorVector](i).cbind( that.keyAs[FactorVector](i) )
+        }
+      }
       mdf
     }
   }
@@ -78,7 +86,7 @@ object DataFrame {
     def unmarshalAll = cols.foreach { c => c.unmarshal }
   }
   
-  class DataFrameColumn( val _type : TypeCode )
+  class DataFrameColumn( val _type : TypeCode ) extends DataColumn
   {
     var id : String = null
     var data : DataVector[Any] = null

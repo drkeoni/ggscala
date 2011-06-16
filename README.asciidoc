@@ -9,7 +9,7 @@ Jon Sorenson <jon_m_sorenson@yahoo.com>
 :Author Initials: JMS
 :toc:
 
-*ggscala* is an scala implementation of the Grammar of Graphics formalism introduced
+*ggscala* is a scala implementation of the Grammar of Graphics formalism introduced
 by http://www.cs.uic.edu/~wilkinson/TheGrammarOfGraphics/GOG.html[Leland Wilkinson] 
 and made popular by Hadley Wickham's R package http://had.co.nz/ggplot2/[ggplot2].
 
