@@ -26,7 +26,8 @@ object DataFrame {
     }
     private def syncIds = columns.zipWithIndex.foreach { case (c,i) => id2num(c.id) = i }
     
-    def apply( key:String ) : DataColumn = columns( id2num(key) )
+    /** Provides access to a DataColumn (type,id,data) for specified column. */
+    def apply( id:String ) : DataColumn = columns( id2num(id) )
     
     private def keyAs[T]( key:String ) = this( key ).data.asInstanceOf[T]
     private def keyAs[T]( i:Int ) = columns(i).data.asInstanceOf[T]
