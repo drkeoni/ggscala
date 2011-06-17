@@ -93,6 +93,14 @@ object MultiColumnSource
     def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) : DataVector[DataType]
   }
   
+  class IterableDataVector[T]( protected val values:Iterable[T] ) extends DataVector[T] {
+    protected def factory( vals:Iterable[DataType] ) : DataVector[DataType] = new IterableDataVector(vals)
+    override type DataType = T
+    override def iterator = values.iterator
+    def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) = 
+      factory( values.map(_.asInstanceOf[DataType]) ++ data.iterator )
+  }
+  
   /** A DataVector which is backed by a fully instantiated Array */
   class ArrayDataVector[T]( protected val values: Array[T] ) extends DataVector[T] {
     override type DataType = T
