@@ -11,25 +11,18 @@ import org.ggscala.model.TypeCode._
 
 object MultiColumnSource
 {
-  /** Represents a data source which provides typed columns of data.
-   *  Type-specific selectors allow retrieval of correctly typed
-   *  Iterables corresponding to a key.
+  /** Represents a data source which provides columns of data.
+   *  The caller is responsible for supplying types for the column data.
+   *  Sub-traits provide stronger type support.
    */
-  trait MultiColumnSource {
+  trait NamedColumnSource
+  {
     /** select a column with any type */
     def $a( key:String ) : DataVector[Any]
-    /** select a string column */
-    def $s( key:String ) : DataVector[String]
-    /** select a double column */
-    def $d( key:String ) : DataVector[Double]
-    /** select a factor column */
-    def $f( key:String ) : DataVector[Factor]
     /** provide the list of keys known to this column source. */
     def names : Seq[String]
     /** Subclasses can override to provide the total number of columns */
     def ncol = 0
-    // The dynamic typing nature of MultiColumnSource makes it very difficult (impossible?) to return a
-    // statically typed row.
     /** Iterate over rows of this column source.  Rows are represented by Seq[Any].
      *  The order of elements is defined by the order of columns as returned by 
      *  names.
@@ -41,16 +34,51 @@ object MultiColumnSource
     }
   }
   
+  /** Represents a data source which provides typed columns of data.
+   *  Type-specific selectors allow retrieval of correctly typed
+   *  Iterables corresponding to a key.
+   */
+  trait MultiColumnSource extends NamedColumnSource
+  {
+    //
+    // abstract methods
+    //
+    val columns : Seq[DataColumn]
+    def idMap( id:String ) : Int
+    /** select a string column */
+    def $s( id:String ) : DataVector[String]
+    /** select a double column */
+    def $d( id:String ) : DataVector[Double]
+    /** select a factor column */
+    def $f( id:String ) : DataVector[Factor]
+    
+    //
+    // concrete methods
+    //
+    def names = columns.map(_.id)
+    override def ncol = columns.length
+    /** select a column with any type */
+    def $a( id:String ) = columns(idMap(id)).data
+    
+    /** Provides access to a DataColumn (type,id,data) for specified column. */
+    def apply( id:String ) : DataColumn = columns( idMap(id) )
+    
+    protected def keyAs[T]( id:String ) = this( id ).data.asInstanceOf[T]
+    protected def keyAs[T]( i:Int ) = columns(i).data.asInstanceOf[T]
+  }
+  
   // TODO: still playing with the type signature here
   
   /** MultiColumnSources which can be row-concatenated with other MultiColumnSources */
-  trait RowBindable[+D <: MultiColumnSource] extends MultiColumnSource {
+  trait RowBindable[+D <: MultiColumnSource] {
+    this: MultiColumnSource =>
     def rbind( d:RowBindable[MultiColumnSource] ) : RowBindable[D]
     def rbind( d:Option[RowBindable[MultiColumnSource]] ) : RowBindable[D] = if ( d.isEmpty ) this; else rbind( d.get )
   }
   
   /** MultiColumnSources which can be column-concatenated with other MultiColumnSources */
-  trait ColumnBindable extends MultiColumnSource {
+  trait ColumnBindable {
+    this: MultiColumnSource =>
     def cbind( d:ColumnBindable ) : ColumnBindable
   }
   
@@ -63,17 +91,19 @@ object MultiColumnSource
     /** Subclasses implement to provide an underlying column source. */
     protected def columnSource : MultiColumnSource
     lazy val _columnSource = columnSource
-    def $a( key:String ) = _columnSource.$a(key)
+    lazy val columns = _columnSource.columns
+    def idMap( id:String ) = _columnSource.idMap(id)
+    override def $a( key:String ) = _columnSource.$a(key)
     def $s( key:String ) = _columnSource.$s(key)
     def $d( key:String ) = _columnSource.$d(key)
     def $f( key:String ) = _columnSource.$f(key)
-    def names = _columnSource.names
+    override def names = _columnSource.names
     override def ncol = _columnSource.ncol
   }
   
   /**
-   * Associates a name (id) and type code with a DataVector.  Useful in
-   * implementing MultiColumnSources.
+   * Associates a name (id) and type code with a DataVector.  Provides 
+   * column metadata + data for MultiColumnSources.
    */
   trait DataColumn
   {

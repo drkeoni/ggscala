@@ -12,10 +12,11 @@ import org.ggscala.model.Factor._
 object DataFrame {
   
   /** A data frame which contains all of its values in memory. */
-  class MemoryDataFrame( val colTypes : Seq[TypeCode] ) extends RowBindable[MemoryDataFrame]
+  class MemoryDataFrame( val colTypes : Seq[TypeCode] ) extends MultiColumnSource with RowBindable[MemoryDataFrame]
   {
-    val columns = Array.tabulate( colTypes.length ){ i => new DataFrameColumn( colTypes(i) ) }
+    val columns = List.tabulate( colTypes.length ){ i => new DataFrameColumn( colTypes(i) ) }
     val id2num = new HashMap[String,Int]
+    def idMap( id:String ) = id2num(id)
     
     /** Set the column identifiers for this data frame. */
     def setIds( ids : Seq[String] ) = 
@@ -25,19 +26,10 @@ object DataFrame {
     }
     private def syncIds = columns.zipWithIndex.foreach { case (c,i) => id2num(c.id) = i }
     
-    /** Provides access to a DataColumn (type,id,data) for specified column. */
-    def apply( id:String ) : DataColumn = columns( id2num(id) )
-    
-    private def keyAs[T]( id:String ) = this( id ).data.asInstanceOf[T]
-    private def keyAs[T]( i:Int ) = columns(i).data.asInstanceOf[T]
-    def $a( key:String ) = keyAs[ArrayDataVector[Any]](key)
+    override def $a( key:String ) = keyAs[ArrayDataVector[Any]](key)
     def $s( key:String ) = keyAs[StringVector](key)
     def $d( key:String ) = keyAs[DoubleVector](key)
     def $f( key:String ) = keyAs[FactorVector](key)
-    
-    def names = columns.map(_.id)
-    
-    override def ncol = columns.length
     
     def rbind( that:RowBindable[MultiColumnSource] ) : MemoryDataFrame =
     {
@@ -48,7 +40,7 @@ object DataFrame {
       assert( that.isInstanceOf[MemoryDataFrame] )
       val _that = that.asInstanceOf[MemoryDataFrame]
       // assert both data frames have same number of columns
-      assert( that.ncol == this.ncol )
+      assert( _that.ncol == this.ncol )
       // assert both data frames have same column IDs and types
       (columns zip _that.columns).foreach { case (c1,c2) => assert( c1.id==c2.id ); assert( c1._type==c2._type) }
       val mdf = new MemoryDataFrame( colTypes )
@@ -64,7 +56,14 @@ object DataFrame {
       mdf
     }
     
-    /** for debugging use */
+    /** 
+     * generates string like:
+     *      name   age
+     * 0     Bob    25
+     * 1   April    34
+     * 2    Carl    52
+     * (intended for debugging use)
+     * */
     override def toString =
     {
       // use an odd number
@@ -85,7 +84,7 @@ object DataFrame {
     def apply( cols : DataFrameColumn* ) =
     {
       val dfc = new MemoryDataFrame( cols.map(_._type) )
-      cols.zipWithIndex.foreach { case (c,i) => dfc.columns(i)=c }
+      cols.zipWithIndex.foreach { case (c,i) => dfc.columns(i).id=c.id; dfc.columns(i).data=c.data }
       dfc.syncIds
       dfc
     }
@@ -97,9 +96,7 @@ object DataFrame {
   class TempStringDataFrame( colTypes : Seq[TypeCode] )
     extends MemoryDataFrame(colTypes)
   {
-    {
-      (0 until colTypes.length).foreach { i => columns(i) = new TempStringDataFrameColumn(colTypes(i)) }
-    }
+    override val columns = List.tabulate( colTypes.length ){ i => new TempStringDataFrameColumn( colTypes(i) ) }
     // I'm just not doing something right.
     // It should be easier to convince a subclass that Array[TempStringDataFrameColumn] is an Array[DataFrameColumn]
     private def cols = columns.map( _.asInstanceOf[TempStringDataFrameColumn] )
