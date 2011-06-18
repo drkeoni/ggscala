@@ -44,9 +44,9 @@ object MultiColumnSource
   // TODO: still playing with the type signature here
   
   /** MultiColumnSources which can be row-concatenated with other MultiColumnSources */
-  trait RowBindable[T <: MultiColumnSource] extends MultiColumnSource {
-    def rbind( d:T ) : RowBindable[T]
-    def rbind( d:Option[T] ) : RowBindable[T] = if ( d.isEmpty ) this; else rbind( d.get )
+  trait RowBindable[+D <: MultiColumnSource] extends MultiColumnSource {
+    def rbind( d:RowBindable[MultiColumnSource] ) : RowBindable[D]
+    def rbind( d:Option[RowBindable[MultiColumnSource]] ) : RowBindable[D] = if ( d.isEmpty ) this; else rbind( d.get )
   }
   
   /** MultiColumnSources which can be column-concatenated with other MultiColumnSources */
@@ -93,6 +93,7 @@ object MultiColumnSource
     def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) : DataVector[DataType]
   }
   
+  /** A DataVector which wraps an Iterable */
   class IterableDataVector[T]( protected val values:Iterable[T] ) extends DataVector[T] {
     protected def factory( vals:Iterable[DataType] ) : DataVector[DataType] = new IterableDataVector(vals)
     override type DataType = T

@@ -1,3 +1,7 @@
+/*
+ * Grammar of Graphics in Scala
+ * Copyright (c) 2011, ggscala.org
+ */
 package org.ggscala.model
 
 import org.scalatest.FlatSpec
