@@ -16,10 +16,43 @@ object DataFrame {
   //
   // factory methods for DataFrame
   //
+  def apply( colTypes : Seq[TypeCode] ) =
+  {
+    
+  }
+  
+  def apply( cols : DataColumn* ) =
+  {
+    val dfc = new MemoryDataFrame( cols.map(_._type) )
+    cols.zipWithIndex.foreach { case (c,i) => dfc.columns(i).id=c.id; dfc.columns(i).data=c.data }
+    dfc.syncIds
+    dfc
+  }
   
   //
   // factory methods for DataFrameColumn
   //
+  
+  object DataFrameColumn
+  {
+    def apply( values:DataVector[Any], _type:TypeCode ) : DataFrameColumn =
+    {
+      val dfc = new DataFrameColumn(_type)
+      dfc.data = values
+      dfc
+    }
+      
+    def apply( values:DataVector[Any], _type:TypeCode, id:String ) : DataFrameColumn =
+    {
+      val dfc = apply(values,_type)
+      dfc.id = id
+      dfc
+    }
+    
+    private[model] def makeDfc[A <: Any]( _type:TypeCode, id:String, values:Array[A] ) = 
+      DataFrameColumn(anyArrayToDataVector(values,_type),_type,id)
+  }
+  
   def s( id:String, values:Array[String] ) = DataFrameColumn.makeDfc($s,id,values)
   def s( id:String, values:String ) = DataFrameColumn.makeDfc($s,id,Array(values))
   def d( id:String, values:Array[Double] ) = DataFrameColumn.makeDfc($d,id,values)
@@ -46,7 +79,7 @@ object DataFrame {
       (columns zip ids) foreach { case (c,s) => c.id = s }
       syncIds
     }
-    private def syncIds = columns.zipWithIndex.foreach { case (c,i) => id2num(c.id) = i }
+    private[DataFrame] def syncIds = columns.zipWithIndex.foreach { case (c,i) => id2num(c.id) = i }
     
     override def $a( key:String ) = keyAs[ArrayDataVector[Any]](key)
     def $s( key:String ) = keyAs[StringVector](key)
@@ -120,38 +153,17 @@ object DataFrame {
     override val columns = List.tabulate( colTypes.length ){ i => new TempStringDataFrameColumn( colTypes(i) ) }
     // I'm just not doing something right.
     // It should be easier to convince a subclass that Array[TempStringDataFrameColumn] is an Array[DataFrameColumn]
-    private def cols = columns.map( _.asInstanceOf[TempStringDataFrameColumn] )
-    def addLine( line : Seq[String] ) = line.zipWithIndex.foreach { case (v,i) => cols(i).tmp += v }
-    def unmarshalAll = cols.foreach { c => c.unmarshal }
+    //private def cols = columns.map( _.asInstanceOf[TempStringDataFrameColumn] )
+    def addLine( line : Seq[String] ) = line.zipWithIndex.foreach { case (v,i) => columns(i).tmp += v }
+    def unmarshalAll = columns.foreach { c => c.unmarshal }
   }
   
+  /** Concrete class implementing a basic DataColumn */
   class DataFrameColumn( val _type : TypeCode ) extends DataColumn
   {
     var id : String = null
     var data : DataVector[Any] = null
   }
-    
-  object DataFrameColumn
-  {
-    def apply( values:DataVector[Any], _type:TypeCode ) : DataFrameColumn =
-    {
-      val dfc = new DataFrameColumn(_type)
-      dfc.data = values
-      dfc
-    }
-      
-    def apply( values:DataVector[Any], _type:TypeCode, id:String ) : DataFrameColumn =
-    {
-      val dfc = apply(values,_type)
-      dfc.id = id
-      dfc
-    }
-    
-    private[model] def makeDfc[A <: Any]( _type:TypeCode, id:String, values:Array[A] ) = 
-      DataFrameColumn(anyArrayToDataVector(values,_type),_type,id)
-  }
-  
-  
   
   class TempStringDataFrameColumn( _type : TypeCode ) extends DataFrameColumn(_type)
   {
