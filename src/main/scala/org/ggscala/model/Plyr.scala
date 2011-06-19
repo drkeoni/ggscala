@@ -4,10 +4,12 @@
  */
 package org.ggscala.model
 
+import scala.collection.mutable.HashMap
+
 import org.ggscala.model.MultiColumnSource._
 import org.ggscala.model.Factor._
 import org.ggscala.model.TypeCode._
-import scala.collection.mutable.HashMap
+import org.ggscala.model.DataColumn._
 
 object Plyr {
   

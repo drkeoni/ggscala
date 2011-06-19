@@ -6,7 +6,7 @@ package org.ggscala.model
 
 import scala.collection.mutable.HashMap
 
-import org.ggscala.model.MultiColumnSource.DataVector
+import org.ggscala.model.DataColumn.DataVector
 
 object Factor 
 { 

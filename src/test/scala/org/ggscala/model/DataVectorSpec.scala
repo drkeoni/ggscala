@@ -7,7 +7,7 @@ package org.ggscala.model
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
-import org.ggscala.model.MultiColumnSource.StringVector
+import org.ggscala.model.DataColumn.StringVector
 import org.ggscala.test.TestUtils
 
 class DataVectorSpec extends FlatSpec with ShouldMatchers {

@@ -8,8 +8,30 @@ import scala.collection.mutable.{HashMap,ListBuffer}
 import org.ggscala.model.MultiColumnSource._
 import org.ggscala.model.TypeCode._
 import org.ggscala.model.Factor._
+import org.ggscala.model.DataColumn._
 
 object DataFrame {
+  
+  
+  //
+  // factory methods for DataFrame
+  //
+  
+  //
+  // factory methods for DataFrameColumn
+  //
+  def s( id:String, values:Array[String] ) = DataFrameColumn.makeDfc($s,id,values)
+  def s( id:String, values:String ) = DataFrameColumn.makeDfc($s,id,Array(values))
+  def d( id:String, values:Array[Double] ) = DataFrameColumn.makeDfc($d,id,values)
+  def d( id:String, values:Double ) = DataFrameColumn.makeDfc($d,id,Array(values))
+  def d( id:String, values:Array[Int] ) = DataFrameColumn.makeDfc($d,id,values)
+  def d( id:String, values:Int ) = DataFrameColumn.makeDfc($d,id,Array(values))  
+  def f( id:String, values:Array[String] ) = DataFrameColumn.makeDfc($f,id,values)
+  
+  //
+  // Most all (if not all) of the following implementations will get hidden in the end
+  // (i.e. use the above factory methods)
+  //
   
   /** A data frame which contains all of its values in memory. */
   class MemoryDataFrame( val colTypes : Seq[TypeCode] ) extends MultiColumnSource with RowBindable[MemoryDataFrame]
@@ -71,10 +93,10 @@ object DataFrame {
       val StringWidth = "%" + Width + "s"
       val buffer = new StringBuilder
       def trunc( s:String ) = if (s.length<Width ) s else s.substring(0,Width/2-1)+"..."+s.substring(s.length-Width/2+1,s.length)
-      buffer.append( "      " + (names.map(s=>StringWidth.format(trunc(s))) mkString "\t") )
-      buffer.append( "\n" )
+      def rowLine( v:Seq[Any] ) = v.map( s=>StringWidth.format(trunc(s.toString)) ) mkString "\t"
+      buffer.append( "      " + rowLine(names) + "\n" )
       for( (r,i) <- rowIterator.zipWithIndex )
-        buffer.append( "%6d".format(i) + ( r.map(v=>StringWidth.format(trunc(v.toString))) mkString "\t" ) + "\n" )
+        buffer.append( "%6d".format(i) + rowLine(r) + "\n" )
       buffer.toString
     }
   }
@@ -129,14 +151,7 @@ object DataFrame {
       DataFrameColumn(anyArrayToDataVector(values,_type),_type,id)
   }
   
-  // factory methods for DataFrameColumn
-  def s( id:String, values:Array[String] ) = DataFrameColumn.makeDfc($s,id,values)
-  def s( id:String, values:String ) = DataFrameColumn.makeDfc($s,id,Array(values))
-  def d( id:String, values:Array[Double] ) = DataFrameColumn.makeDfc($d,id,values)
-  def d( id:String, values:Double ) = DataFrameColumn.makeDfc($d,id,Array(values))
-  def d( id:String, values:Array[Int] ) = DataFrameColumn.makeDfc($d,id,values)
-  def d( id:String, values:Int ) = DataFrameColumn.makeDfc($d,id,Array(values))  
-  def f( id:String, values:Array[String] ) = DataFrameColumn.makeDfc($f,id,values)
+  
   
   class TempStringDataFrameColumn( _type : TypeCode ) extends DataFrameColumn(_type)
   {
