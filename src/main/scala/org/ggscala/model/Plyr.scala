@@ -17,11 +17,12 @@ object Plyr {
    */
   def ddply[D <: MultiColumnSource]( data:MultiColumnSource, split:Seq[String], f:MultiColumnSource => Option[RowBindable[D]] ) : RowBindable[D] =
   {
+    // split data by unique values across columns
     val subData = partition( data, split )
     
     // rbind that can handle 0, 1, or 2 null arguments
     def rbind( a:Option[RowBindable[D]], b:Option[RowBindable[D]] ) : Option[RowBindable[D]] =
-      if ( !b.isDefined ) a else a.map( _.rbind(b.get)).orElse(b)
+      if ( !b.isDefined ) a else a.map( _.rbind(b.get) ).orElse(b)
         
     // map and reduce   
     val nil = Option[RowBindable[D]](null)

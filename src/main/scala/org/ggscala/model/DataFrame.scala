@@ -93,8 +93,7 @@ object DataFrame {
   /**
    * Data frame which builds up its columns from string buffers
    */
-  class TempStringDataFrame( colTypes : Seq[TypeCode] )
-    extends MemoryDataFrame(colTypes)
+  class TempStringDataFrame( colTypes : Seq[TypeCode] ) extends MemoryDataFrame(colTypes)
   {
     override val columns = List.tabulate( colTypes.length ){ i => new TempStringDataFrameColumn( colTypes(i) ) }
     // I'm just not doing something right.

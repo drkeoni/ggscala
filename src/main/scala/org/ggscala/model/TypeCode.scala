@@ -6,6 +6,9 @@ package org.ggscala.model
 
 import org.ggscala.model.Factor.Factor
 
+/**
+ * Defines the dynamic type system for multi-column sources
+ */
 object TypeCode 
 {
   sealed abstract class TypeCode( val label:String )
