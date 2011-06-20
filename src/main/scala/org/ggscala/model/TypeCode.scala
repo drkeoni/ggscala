@@ -12,17 +12,20 @@ import org.ggscala.model.Factor.Factor
 object TypeCode 
 {
   sealed abstract class TypeCode( val label:String )
+  final case object AnyTypeCode extends TypeCode("a")
   final case object StringTypeCode extends TypeCode("s")
   final case object DoubleTypeCode extends TypeCode("d")
   final case object FactorTypeCode extends TypeCode("f")
   
   // syntactic sugar for type codes
+  final val $a = AnyTypeCode
   final val $s = StringTypeCode
   final val $d = DoubleTypeCode
   final val $f = FactorTypeCode
   
   /** Implements the reverse mapping between string and TypeCode */
   def strToTypeCode( s:String ) = s match {
+    case "a" => $a
     case "s" => $s
     case "d" => $d
     case "f" => $f
@@ -32,7 +35,6 @@ object TypeCode
     case _ : String => $s
     case _ : Double => $d
     case _ : Factor => $f
-    case _ =>
-      throw new IllegalArgumentException( "Couldn't find type code for object = %s".format(obj) )
+    case _ => $a
   }
 }

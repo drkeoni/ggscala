@@ -12,29 +12,29 @@ import org.ggscala.model.DataColumn._
 
 object DataFrame {
   
+  trait DataFrame extends MultiColumnSource with RowBindable[DataFrame]
   
   //
   // factory methods for DataFrame
   //
-  def apply( colTypes : Seq[TypeCode] ) =
-  {
-    
-  }
+  //def apply( colTypes : Seq[TypeCode] )( implicit x:TypeCode ) : MultiColumnSource = new MemoryDataFrame( colTypes )
   
-  def apply( cols : DataColumn* ) =
+  def apply( cols : List[DataColumn] ) : DataFrame =
   {
     val dfc = new MemoryDataFrame( cols.map(_._type) )
     cols.zipWithIndex.foreach { case (c,i) => dfc.columns(i).id=c.id; dfc.columns(i).data=c.data }
     dfc.syncIds
     dfc
   }
-  
+    
+  def apply( cols : DataColumn* ) : DataFrame = apply(cols.toList)
+    
   //
   // factory methods for DataFrameColumn
   //
   
   object DataFrameColumn
-  {
+  { 
     def apply( values:DataVector[Any], _type:TypeCode ) : DataFrameColumn =
     {
       val dfc = new DataFrameColumn(_type)
@@ -49,17 +49,23 @@ object DataFrame {
       dfc
     }
     
+    private[model] def makeDfc[A <: Any]( _type:TypeCode, id:String, values:Iterable[A] ) = 
+      DataFrameColumn( new IterableDataVector[A](values), _type, id )
+    
     private[model] def makeDfc[A <: Any]( _type:TypeCode, id:String, values:Array[A] ) = 
-      DataFrameColumn(anyArrayToDataVector(values,_type),_type,id)
+      DataFrameColumn( anyArrayToDataVector(values,_type), _type, id )
   }
   
-  def s( id:String, values:Array[String] ) = DataFrameColumn.makeDfc($s,id,values)
-  def s( id:String, values:String ) = DataFrameColumn.makeDfc($s,id,Array(values))
+  // these are the easy ways to create DataFrameColumns
+  
   def d( id:String, values:Array[Double] ) = DataFrameColumn.makeDfc($d,id,values)
   def d( id:String, values:Double ) = DataFrameColumn.makeDfc($d,id,Array(values))
   def d( id:String, values:Array[Int] ) = DataFrameColumn.makeDfc($d,id,values)
   def d( id:String, values:Int ) = DataFrameColumn.makeDfc($d,id,Array(values))  
-  def f( id:String, values:Array[String] ) = DataFrameColumn.makeDfc($f,id,values)
+  def f( id:String, values:Seq[String] ) = DataFrameColumn.makeDfc($f,id,values.toArray)
+  def a( id:String, values:Iterable[Any] ) = DataFrameColumn.makeDfc($a,id,values)
+  def s( id:String, values:Seq[String] ) = DataFrameColumn.makeDfc($s,id,values.toArray)
+  def s( id:String, values:String ) = DataFrameColumn.makeDfc($s,id,Array(values))
   
   //
   // Most all (if not all) of the following implementations will get hidden in the end
@@ -67,7 +73,7 @@ object DataFrame {
   //
   
   /** A data frame which contains all of its values in memory. */
-  class MemoryDataFrame( val colTypes : Seq[TypeCode] ) extends MultiColumnSource with RowBindable[MemoryDataFrame]
+  class MemoryDataFrame( val colTypes : Seq[TypeCode] ) extends DataFrame
   {
     val columns = List.tabulate( colTypes.length ){ i => new DataFrameColumn( colTypes(i) ) }
     val id2num = new HashMap[String,Int]
@@ -81,7 +87,7 @@ object DataFrame {
     }
     private[DataFrame] def syncIds = columns.zipWithIndex.foreach { case (c,i) => id2num(c.id) = i }
     
-    override def $a( key:String ) = keyAs[ArrayDataVector[Any]](key)
+    override def $a( key:String ) = keyAs[DataVector[Any]](key)
     def $s( key:String ) = keyAs[StringVector](key)
     def $d( key:String ) = keyAs[DoubleVector](key)
     def $f( key:String ) = keyAs[FactorVector](key)
@@ -126,10 +132,10 @@ object DataFrame {
       val StringWidth = "%" + Width + "s"
       val buffer = new StringBuilder
       def trunc( s:String ) = if (s.length<Width ) s else s.substring(0,Width/2-1)+"..."+s.substring(s.length-Width/2+1,s.length)
-      def rowLine( v:Seq[Any] ) = v.map( s=>StringWidth.format(trunc(s.toString)) ) mkString "\t"
-      buffer.append( "      " + rowLine(names) + "\n" )
+      def rowLine( v:Seq[Any] ) = v.map( s=>StringWidth.format(trunc(s.toString)) ) mkString "  "
+      buffer.append( "        " + rowLine(names) + "\n" )
       for( (r,i) <- rowIterator.zipWithIndex )
-        buffer.append( "%6d".format(i) + rowLine(r) + "\n" )
+        buffer.append( "%6d".format(i) + "  " + rowLine(r) + "\n" )
       buffer.toString
     }
   }

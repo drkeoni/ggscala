@@ -8,28 +8,46 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
 import org.ggscala.model.DataFrame._
+import org.ggscala.model.MultiColumnSource.MultiColumnSource
 import org.ggscala.model.Plyr.ddply
 import org.ggscala.test.TestUtils
 
 class PlyrSpec extends FlatSpec with ShouldMatchers {
+  
+  def mean(v:Iterable[Double]) = {
+    val v2 = v.toArray
+    if ( v2.length==0 ) 0.0; else v2.sum / v2.length
+  }
+  
   "ddply" should "group by a single factor and generate a data frame" in
   {
-    val dataFrame = MemoryDataFrame( 
+    val dataFrame = DataFrame( 
       d("values",Array( 1.0, 2.0, 3.0, 2.0, 3.0 )), 
-      s("letters",Array( "ApplesBananasAndYogurt", "B", "C", "ApplesBananasAndYogurt", "B" )) 
+      f("letters",Array( "ApplesBananasAndYogurt", "B", "C", "ApplesBananasAndYogurt", "B" )) 
     )
     println( "starting with " )
     println( dataFrame )
-    def mean(v:Iterable[Double]) = {
-      val v2 = v.toArray
-      if ( v2.length==0 ) 0.0; else v2.sum / v2.length
-    }
+    
     // the signature for the function call is so ugly...we'll improve it...
-    val e = ddply( dataFrame, List("letters"), { d2 => Some(MemoryDataFrame(d("avg",mean(d2.$d("values"))))) } )
+    def func( d2:MultiColumnSource ) = Some(DataFrame( d("avg",mean(d2.$d("values"))) ))
+    
+    val e = ddply( dataFrame, List("letters"), func )
     println( "after ddply " )
     println( e )
-    // this test is commented out until ddply fully works
-    //e.ncol should be (2)
+    e.ncol should be (2)
+  }
+  
+  "ddply" should "group by a single string column and generate a data frame" in
+  {
+    val dataFrame = DataFrame( 
+      d("values",Array( 1.0, 2.0, 3.0, 2.0, 3.0 )), 
+      s("letters",Array( "ApplesBananasAndYogurt", "B", "C", "ApplesBananasAndYogurt", "B" )) 
+    )
+    
+    def func( d2:MultiColumnSource ) = Some(DataFrame( d("avg",mean(d2.$d("values"))) ))
+    
+    val e = ddply( dataFrame, List("letters"), func )
+    e.ncol should be (2)
   }
 }
 

@@ -10,24 +10,27 @@ import org.ggscala.model.MultiColumnSource._
 import org.ggscala.model.Factor._
 import org.ggscala.model.TypeCode._
 import org.ggscala.model.DataColumn._
+import org.ggscala.model.DataFrame._
 
 object Plyr {
+  
+  implicit def ddply_function( f:MultiColumnSource => DataFrame ) = { mcs:MultiColumnSource => Some(f(mcs)) }
   
   /** Partition data by factors determined by unique combinations of the columns
    *  specified by split, apply a function to each partition, and combine the
    *  results in a final data source.
    */
-  def ddply[D <: MultiColumnSource]( data:MultiColumnSource, split:Seq[String], f:MultiColumnSource => Option[RowBindable[D]] ) : RowBindable[D] =
+  def ddply( data:MultiColumnSource, split:Seq[String], f:MultiColumnSource => Option[DataFrame] ) : DataFrame =
   {
+    type D = RowBindable[DataFrame]
     // split data by unique values across columns
     val subData = partition( data, split )
     
     // rbind that can handle 0, 1, or 2 null arguments
-    def rbind( a:Option[RowBindable[D]], b:Option[RowBindable[D]] ) : Option[RowBindable[D]] =
+    def rbind( a:Option[D], b:Option[D] ) : Option[D] =
       if ( !b.isDefined ) a else a.map( _.rbind(b.get) ).orElse(b)
         
     // map and reduce   
-    val nil = Option[RowBindable[D]](null)
     
     // in order to implement this function we need:
     // 1. to know the type of each key
@@ -37,16 +40,30 @@ object Plyr {
     //  - need trait for appending/updating columns
     //  - need to rewrite ddply signature for expecting these traits
     // )
-    def combineFunctionAndKeys( mcs:MultiColumnSource ) : Option[RowBindable[D]] =
+    def combineFunctionAndKeys( mcs:MultiColumnSource ) : Option[DataFrame] =
     {
-      f(mcs)
+      val ans = f(mcs)
+      if ( ans.isEmpty )
+        return ans
+      val ans2 = ans.get
+      val keyCols = split.map(mcs(_))
+      val keys = keyCols.map( _.data.head.toString )
+      // we need to know the number of rows in a MultiColumnSource...so far there's no support for this
+      // and we actually want to introduce a sub-trait to allow this
+      // cheat for now and find out the # of rows of ans2
+      val nrow = ans2(0).data.foldLeft(0)( (s,v) => s+1 )
+      val keyColumns = 
+        ( keys zip keyCols )
+          .map{ case (k,col) => DataFrameColumn( stringArrayToDataVector(Array.fill(nrow)(k),col._type), col._type, col.id ) }
+      Some( DataFrame( keyColumns.toList ::: ans2.columns.toList ) )
     }
     
+    val nil = Option[D](null)
     val ans = subData.foldLeft( nil )( (s,v) => rbind( s, combineFunctionAndKeys(v) ) )
     if ( ans.isEmpty )
       throw new IllegalStateException( "ddply call resulted in empty multi-column source!" )
     else
-      ans.get
+      ans.get.asInstanceOf[DataFrame]
   }
   
   def partition[D <: MultiColumnSource]( data:MultiColumnSource, split:Seq[String] ) : Iterator[MultiColumnSource] =
@@ -54,7 +71,7 @@ object Plyr {
     assert( split.length >= 1 )
     // partition
     val _names = data.names
-    val _types = data.columns.map( _._type )
+    val _types = data.types
     val colIndices = split.map( _names.indexOf(_) )
     def compoundKey( row:IndexedSeq[Any] ) = colIndices.map( row(_).toString ) mkString "_"
     val subData = data.rowIterator.toList.groupBy(compoundKey _)
@@ -68,8 +85,15 @@ object Plyr {
       _names.zipWithIndex.foreach { case (v,i) => hash(v) = i }
       hash
     }
-    // not actually implemented yet
-    val columns = List.tabulate(_names.length)( i => new RowListColumn(_types(i)) )
+    val columns = {
+      def toDataColumn(i:Int) = _types(i) match {
+        case StringTypeCode => s( _names(i), $s(_names(i)).toArray )
+        case DoubleTypeCode => d( _names(i), $d(_names(i)).toArray )
+        case FactorTypeCode => f( _names(i), $f(_names(i)).toArray.map(_.toString) )
+        case AnyTypeCode => a( _names(i), $a(_names(i)) )
+      }
+      List.tabulate(_names.length)( toDataColumn _ )
+    }
     def idMap(id:String) = id2num(id)
     override def names = _names
     override def $a( id:String ) = new IterableDataVector(rows.map( r => r(id2num(id)) ))

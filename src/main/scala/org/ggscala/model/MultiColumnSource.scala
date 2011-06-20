@@ -57,12 +57,15 @@ object MultiColumnSource
     // concrete methods
     //
     def names = columns.map(_.id)
+    def types = columns.map( _._type )
     override def ncol = columns.length
     /** select a column with any type */
     def $a( id:String ) = this( id ).data
     
     /** Provides access to a DataColumn (type,id,data) for specified column. */
     def apply( id:String ) : DataColumn = columns( idMap(id) )
+    /** Provides access to a DataColumn (type,id,data) for specified column. */
+    def apply( i:Int ) : DataColumn = columns( i )
     
     protected def keyAs[T]( id:String ) = this( id ).data.asInstanceOf[T]
     protected def keyAs[T]( i:Int ) = columns(i).data.asInstanceOf[T]
@@ -71,8 +74,7 @@ object MultiColumnSource
   // TODO: still playing with the type signature here
   
   /** MultiColumnSources which can be row-concatenated with other MultiColumnSources */
-  trait RowBindable[+D <: MultiColumnSource] {
-    this: MultiColumnSource =>
+  trait RowBindable[+D <: MultiColumnSource] extends MultiColumnSource {
     def rbind( d:RowBindable[MultiColumnSource] ) : RowBindable[D]
     def rbind( d:Option[RowBindable[MultiColumnSource]] ) : RowBindable[D] = if ( d.isEmpty ) this; else rbind( d.get )
   }

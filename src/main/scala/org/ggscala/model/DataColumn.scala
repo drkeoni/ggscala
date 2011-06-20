@@ -72,12 +72,14 @@ object DataColumn {
   def stringArrayToDataVector( values:Array[String], _type:TypeCode ) = _type match {
     case StringTypeCode => new StringVector( values )
     case DoubleTypeCode => new DoubleVector( values.map( _.toDouble ) )
-    case FactorTypeCode => new FactorVector( values ) 
+    case FactorTypeCode => new FactorVector( values )
+    case AnyTypeCode => new IterableDataVector[Any]( values )
   }
   
   def anyArrayToDataVector[_ <: Any]( values:Array[_], _type:TypeCode ) = _type match {
     case StringTypeCode => new StringVector( values.asInstanceOf[Array[String]] )
     case DoubleTypeCode => new DoubleVector( values.asInstanceOf[Array[Double]] )
-    case FactorTypeCode => new FactorVector( values.asInstanceOf[Array[Factor]].map(_.toString) )
+    case FactorTypeCode => new FactorVector( values.asInstanceOf[Array[String]].map(_.toString) )
+    case AnyTypeCode => new IterableDataVector[Any]( values )
   }
 }
