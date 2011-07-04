@@ -123,6 +123,8 @@ object DataFrame {
      * 0     Bob    25
      * 1   April    34
      * 2    Carl    52
+     * Keeps string output to no longer than 15 chars for each column by removing excess
+     * middle characters and replacing with "..."
      * (intended for debugging use)
      * */
     override def toString =

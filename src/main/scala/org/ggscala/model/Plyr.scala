@@ -42,10 +42,13 @@ object Plyr {
     // )
     def combineFunctionAndKeys( mcs:MultiColumnSource ) : Option[DataFrame] =
     {
+      // here is where we actually apply the function
       val ans = f(mcs)
       if ( ans.isEmpty )
         return ans
       val ans2 = ans.get
+      // the remainder is associating the appropriate columns from the keys (the split columns)
+      // with the output
       val keyCols = split.map(mcs(_))
       val keys = keyCols.map( _.data.head.toString )
       // we need to know the number of rows in a MultiColumnSource...so far there's no support for this
@@ -66,6 +69,10 @@ object Plyr {
       ans.get.asInstanceOf[DataFrame]
   }
   
+  /**
+   * Partitions this MultiColumnSource into multiple sources, using unique combinations
+   * of the columns specified by the split argument.
+   */
   def partition[D <: MultiColumnSource]( data:MultiColumnSource, split:Seq[String] ) : Iterator[MultiColumnSource] =
   {
     assert( split.length >= 1 )
