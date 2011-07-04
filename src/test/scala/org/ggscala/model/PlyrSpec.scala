@@ -55,7 +55,7 @@ object PlyrSpec {
   def main(args:Array[String]) = 
   {
     TestUtils.timing {
-      (new PlyrSpec).execute
+      (new PlyrSpec).execute()
     }
   }
 }

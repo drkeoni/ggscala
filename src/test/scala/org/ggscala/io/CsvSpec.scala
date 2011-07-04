@@ -68,11 +68,8 @@ object CsvSpec {
   def main(args:Array[String]) = 
   {
     TestUtils.timing {
-  	  (new SimpleCsvSpec).execute
-  	  (new DataFrameCsvSpec).execute
+  	  (new SimpleCsvSpec).execute()
+  	  (new DataFrameCsvSpec).execute()
     }
   }
 }
-
-
-

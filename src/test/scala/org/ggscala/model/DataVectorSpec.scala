@@ -32,7 +32,7 @@ object DataVectorSpec {
   def main(args:Array[String]) = 
   {
     TestUtils.timing {
-      (new DataVectorSpec).execute
+      (new DataVectorSpec).execute()
     }
   }
 }

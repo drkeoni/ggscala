@@ -73,7 +73,7 @@ object DataFrameSpec {
   def main(args:Array[String]) = 
   {
     TestUtils.timing {
-	    (new DataFrameSpec).execute
+      (new DataFrameSpec).execute()
     }
   }
 }
