@@ -71,12 +71,10 @@ class PlyrSpec extends FlatSpec with ShouldMatchers {
     println( "after ddply " )
     println( e )
     e.ncol should be (3)
-    // the following verbosity is because DataVectors are Iterables and not IndexedSeqs
-    // ...everything would be simpler if this weren't true
     // this is essentially "which" written in scala
     // i.e. which( e$letters=="B" )
-    val i = e.$f("letters").zipWithIndex.find( v => v._1.toString=="B" ).get._2
-    e.$d("min").slice(i,i+1).toArray should equal (Array(2.0))
+    val i = e.$f("letters").indexWhere( _.toString=="B" )
+    e.$d("min")(i) should equal (2.0)
   }
 }
 

@@ -53,6 +53,8 @@ object Factor
     
     override def factorToString(id:Int) = id2str(id)
     override def iterator = _values.iterator
+    override def apply( idx:Int ) = _values(idx)
+    override def length = _values.length
     def toArray = _values
   }
   

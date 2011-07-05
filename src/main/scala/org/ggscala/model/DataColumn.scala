@@ -24,7 +24,7 @@ object DataColumn {
    * An iterable sequence of arbitrary type backing each of the columns
    * provided by a MultiColumnSource
    */
-  trait DataVector[+T <: Any] extends Iterable[T]
+  trait DataVector[+T <: Any] extends Seq[T]
   {
     type DataType
     /** Concatenate a data vector with this data vector. */
@@ -32,10 +32,12 @@ object DataColumn {
   }
   
   /** A DataVector which wraps an Iterable */
-  class IterableDataVector[T]( protected val values:Iterable[T] ) extends DataVector[T] {
-    protected def factory( vals:Iterable[DataType] ) : DataVector[DataType] = new IterableDataVector(vals)
+  class IterableDataVector[T]( protected val values:Seq[T] ) extends DataVector[T] {
     override type DataType = T
+    protected def factory( vals:Seq[DataType] ) : DataVector[DataType] = new IterableDataVector(vals)
     override def iterator = values.iterator
+    override def apply( idx:Int ) = values(idx)
+    override def length = values.length
     def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) = 
       factory( values.map(_.asInstanceOf[DataType]) ++ data.iterator )
   }
@@ -45,6 +47,8 @@ object DataColumn {
     override type DataType = T
     protected def factory( vals:Array[DataType] ) : DataVector[DataType] = new ArrayDataVector(vals)
     override def iterator = values.iterator
+    override def apply( idx:Int ) = values(idx)
+    override def length = values.length
     def toArray = values
     // I'm positive this horrific bit of casting can be avoided, but I haven't been patient
     // enough to work out the right type signatures

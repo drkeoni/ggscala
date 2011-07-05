@@ -49,7 +49,7 @@ object DataFrame {
       dfc
     }
     
-    private[model] def makeDfc[A <: Any]( _type:TypeCode, id:String, values:Iterable[A] ) = 
+    private[model] def makeDfc[A <: Any]( _type:TypeCode, id:String, values:Seq[A] ) = 
       DataFrameColumn( new IterableDataVector[A](values), _type, id )
     
     private[model] def makeDfc[A <: Any]( _type:TypeCode, id:String, values:Array[A] ) = 
@@ -63,7 +63,7 @@ object DataFrame {
   def d( id:String, values:Array[Int] ) = DataFrameColumn.makeDfc($d,id,values)
   def d( id:String, values:Int ) = DataFrameColumn.makeDfc($d,id,Array(values))  
   def f( id:String, values:Seq[String] ) = DataFrameColumn.makeDfc($f,id,values.toArray)
-  def a( id:String, values:Iterable[Any] ) = DataFrameColumn.makeDfc($a,id,values)
+  def a( id:String, values:Seq[Any] ) = DataFrameColumn.makeDfc($a,id,values)
   def s( id:String, values:Seq[String] ) = DataFrameColumn.makeDfc($s,id,values.toArray)
   def s( id:String, values:String ) = DataFrameColumn.makeDfc($s,id,Array(values))
   
