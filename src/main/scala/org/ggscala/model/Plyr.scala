@@ -14,13 +14,26 @@ import org.ggscala.model.DataFrame._
 
 object Plyr {
   
-  implicit def ddply_function( f:MultiColumnSource => DataFrame ) = { mcs:MultiColumnSource => Some(f(mcs)) }
+  // couldn't get this to work
+  //implicit def ddply_function( f:MultiColumnSource => DataFrame ) : MultiColumnSource => Option[DataFrame] = { mcs:MultiColumnSource => Some(f(mcs)) }
   
   /** Partition data by factors determined by unique combinations of the columns
    *  specified by split, apply a function to each partition, and combine the
    *  results in a final data source.
    */
-  def ddply( data:MultiColumnSource, split:Seq[String], f:MultiColumnSource => Option[DataFrame] ) : DataFrame =
+  def ddply( data:MultiColumnSource, split:Seq[String], f: => MultiColumnSource => DataFrame, dummy:String="" ) : DataFrame =
+  {
+    // the X:ClassManifest in the signature is to allow overloading with a function as a parameter
+    // see e.g. http://stackoverflow.com/questions/3307427/scala-double-definition-2-methods-have-the-same-type-erasure
+    def f2 : MultiColumnSource => Option[DataFrame] = { mcs:MultiColumnSource => Some(f(mcs)) }
+    ddply(data,split,f2)
+  }
+  
+  /** Partition data by factors determined by unique combinations of the columns
+   *  specified by split, apply a function to each partition, and combine the
+   *  results in a final data source.
+   */
+  def ddply( data:MultiColumnSource, split:Seq[String], f: => MultiColumnSource => Option[DataFrame] ) : DataFrame =
   {
     type D = RowBindable[DataFrame]
     // split data by unique values across columns

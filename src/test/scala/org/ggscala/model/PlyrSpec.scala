@@ -9,7 +9,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 import org.ggscala.model.DataFrame._
 import org.ggscala.model.MultiColumnSource.MultiColumnSource
-import org.ggscala.model.Plyr.ddply
+import org.ggscala.model.Plyr._
 import org.ggscala.test.TestUtils
 
 class PlyrSpec extends FlatSpec with ShouldMatchers {
@@ -28,16 +28,17 @@ class PlyrSpec extends FlatSpec with ShouldMatchers {
     println( "starting with " )
     println( dataFrame )
     
-    // the signature for the function call is so ugly...we'll improve it...
-    def func( d2:MultiColumnSource ) = Some(DataFrame( d("avg",mean(d2.$d("values"))) ))
+    // take the column named values from d2 and compute the mean
+    // return a new data frame with a column named "avg" with this value
+    def func( d2:MultiColumnSource ) = DataFrame( d( "avg", mean(d2.$d("values")) ) )
     
-    val e = ddply( dataFrame, List("letters"), func )
+    val e = ddply( dataFrame, List("letters"), func _ )
     println( "after ddply " )
     println( e )
     e.ncol should be (2)
   }
   
-  "ddply" should "group by a single string column and generate a data frame" in
+  it should "group by a single string column and generate a data frame" in
   {
     val dataFrame = DataFrame( 
       d("values",Array( 1.0, 2.0, 3.0, 2.0, 3.0 )), 
@@ -46,8 +47,36 @@ class PlyrSpec extends FlatSpec with ShouldMatchers {
     
     def func( d2:MultiColumnSource ) = Some(DataFrame( d("avg",mean(d2.$d("values"))) ))
     
-    val e = ddply( dataFrame, List("letters"), func )
+    val e = ddply( dataFrame, List("letters"), func _ )
     e.ncol should be (2)
+  }
+  
+  it should "group by a single factor and generate a data frame with two computed columns" in
+  {
+    val dataFrame = DataFrame( 
+      d("values",Array( 1.0, 2.0, 3.0, 2.0, 3.0 )), 
+      f("letters",Array( "ApplesBananasAndYogurt", "B", "C", "ApplesBananasAndYogurt", "B" )) 
+    )
+    println( "starting with " )
+    println( dataFrame )
+    
+    // take the column named values from d2 and compute the mean and minimum
+    // return a new data frame with a column named "avg" with this value and a column named "min" with the minimum value
+    def func( d2:MultiColumnSource ) = DataFrame( 
+      d( "avg", mean(d2.$d("values")) ),
+      d( "min", d2.$d("values").min )
+    )
+    
+    val e = ddply( dataFrame, List("letters"), func _ )
+    println( "after ddply " )
+    println( e )
+    e.ncol should be (3)
+    // the following verbosity is because DataVectors are Iterables and not IndexedSeqs
+    // ...everything would be simpler if this weren't true
+    // this is essentially "which" written in scala
+    // i.e. which( e$letters=="B" )
+    val i = e.$f("letters").zipWithIndex.find( v => v._1.toString=="B" ).get._2
+    e.$d("min").slice(i,i+1).toArray should equal (Array(2.0))
   }
 }
 
