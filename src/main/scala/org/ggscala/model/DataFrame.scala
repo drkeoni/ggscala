@@ -56,7 +56,9 @@ object DataFrame {
       DataFrameColumn( anyArrayToDataVector(values,_type), _type, id )
   }
   
+  //
   // these are the easy ways to create DataFrameColumns
+  //
   
   def d( id:String, values:Array[Double] ) = DataFrameColumn.makeDfc($d,id,values)
   def d( id:String, values:Double ) = DataFrameColumn.makeDfc($d,id,Array(values))
@@ -112,6 +114,7 @@ object DataFrame {
           case StringTypeCode => keyAs[StringVector](i).cbind( _that.keyAs[StringVector](i) )
           case DoubleTypeCode => keyAs[DoubleVector](i).cbind( _that.keyAs[DoubleVector](i) )
           case FactorTypeCode => keyAs[FactorVector](i).cbind( _that.keyAs[FactorVector](i) )
+          case AnyTypeCode => throw new IllegalStateException("MemoryDataFrame doesn't support untyped columns!")
         }
       }
       mdf

@@ -21,7 +21,7 @@ object Plyr {
    *  specified by split, apply a function to each partition, and combine the
    *  results in a final data source.
    */
-  def ddply( data:MultiColumnSource, split:Seq[String], f: => MultiColumnSource => DataFrame, dummy:String="" ) : DataFrame =
+  def ddply[X:ClassManifest]( data:MultiColumnSource, split:Seq[String], f: MultiColumnSource => DataFrame ) : DataFrame =
   {
     // the X:ClassManifest in the signature is to allow overloading with a function as a parameter
     // see e.g. http://stackoverflow.com/questions/3307427/scala-double-definition-2-methods-have-the-same-type-erasure
@@ -33,7 +33,7 @@ object Plyr {
    *  specified by split, apply a function to each partition, and combine the
    *  results in a final data source.
    */
-  def ddply( data:MultiColumnSource, split:Seq[String], f: => MultiColumnSource => Option[DataFrame] ) : DataFrame =
+  def ddply( data:MultiColumnSource, split:Seq[String], f: MultiColumnSource => Option[DataFrame] ) : DataFrame =
   {
     type D = RowBindable[DataFrame]
     // split data by unique values across columns

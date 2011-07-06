@@ -68,8 +68,10 @@ class PlyrSpec extends FlatSpec with ShouldMatchers {
     )
     
     val e = ddply( dataFrame, List("letters"), func _ )
+    
     println( "after ddply " )
     println( e )
+    
     e.ncol should be (3)
     // this is essentially "which" written in scala
     // i.e. which( e$letters=="B" )
