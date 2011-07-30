@@ -61,5 +61,6 @@ object Csv
     }
   }
   
+  /** simple constructor for a mini CSV/data-frame DSL */
   def csv( filePath:String ) = new DataFrameCsv(filePath)
 }

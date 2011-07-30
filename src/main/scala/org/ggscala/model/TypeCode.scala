@@ -31,6 +31,7 @@ object TypeCode
     case "f" => $f
   }
   
+  /** Maps a give object's class to a known type code */
   def objectToTypeCode( obj : Any ) = obj match {
     case _ : String => $s
     case _ : Double => $d

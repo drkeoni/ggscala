@@ -80,6 +80,7 @@ object DataColumn {
     case AnyTypeCode => new IterableDataVector[Any]( values )
   }
   
+  /** Unmarshals an array of objects into a DataVector of the requested type */
   def anyArrayToDataVector[_ <: Any]( values:Array[_], _type:TypeCode ) = _type match {
     case StringTypeCode => new StringVector( values.asInstanceOf[Array[String]] )
     case DoubleTypeCode => new DoubleVector( values.asInstanceOf[Array[Double]] )
