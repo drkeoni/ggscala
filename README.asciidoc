@@ -15,7 +15,7 @@ and made popular by Hadley Wickham's R package http://had.co.nz/ggplot2/[ggplot2
 
 Setup
 ~~~~~
-The ggscala project is set up with http://code.google.com/p/simple-build-tool/[sbt]
+The ggscala project is set up with https://github.com/harrah/xsbt/wiki[sbt]
 and http://www.scalatest.org/[ScalaTest].
 
 To get started at the command-line:
