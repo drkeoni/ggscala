@@ -13,19 +13,64 @@ import org.ggscala.model.DataFrame.TempStringDataFrame
 
 object Csv
 {
-  /** Provides simple iteration over a CSV file, returning List[String] for each row */
-  class SimpleCsv( private val filePath:File ) extends Iterable[List[String]]
+  case class LineReaderCallback( pattern:String=>Boolean, action:String=>Unit )
+  
+  class CallbackLineReader[A]( protected val filePath:File, protected val default : String=>A )
+    extends Iterable[A]
+  {
+    protected val callbacks = new ListBuffer[LineReaderCallback]
+    private lazy val _open = io.Source.fromFile( filePath.getAbsolutePath ).getLines
+    
+    def iterator = new Iterator[A]
+    {
+      var nextLine : Option[String] = None
+      var _hasNext = true
+      
+      advance
+      
+      private def advance = {
+        nextLine = None
+        while( !nextLine.isDefined && _open.hasNext )
+        {
+          nextLine = Some(_open.next)
+          val callback = callbacks.find( _.pattern(nextLine.get) )
+          callback.map( _.action(nextLine.get) )
+          if ( callback.isDefined )
+            nextLine = None
+        }
+        _hasNext = nextLine.isDefined
+      }
+      
+      def hasNext = _hasNext
+      
+      def next = {
+        val line = nextLine.get
+        advance
+        default(line)
+      }
+    }
+  }
+  
+  /** Provides simple iteration over a delimited line file, returning List[String] for each row.
+   *  Optional configuration includes
+   *  <ul>
+   *  <li>setting an arbitrary regex delimiter</li>
+   *  <li>recording lines which are considered "metadata"</li>
+   *  <li>skipping arbitrary lines</li>
+   *  </ul>
+   *  */
+  class DelimitedLineReader( filePath:File,
+      protected val delimiter:String = ",", 
+      protected val metadataFilter:String=>Boolean = {s=>false},
+      protected val skipFilter:String=>Boolean = {s=>false} ) extends
+      CallbackLineReader( filePath, { l => l.split( delimiter ).toList } )
   {
     /** constructor from a file path string instead of java.io.File **/
     def this( f:String ) = this( new File(f) )
     
-    private lazy val _open = io.Source.fromFile( filePath.getAbsolutePath ).getLines
-	  
-    def iterator = new Iterator[List[String]]
-    {
-      def hasNext = _open.hasNext
-      def next = _open.next.split(",").toList
-    }
+    callbacks += LineReaderCallback( metadataFilter, {l=>metadata+=l} )
+    callbacks += LineReaderCallback( skipFilter, {l=>Unit} )
+    val metadata = new ListBuffer[String]
   }
 
   /** Provides type-specific manipulation of columns from a CSV file. */
@@ -33,10 +78,10 @@ object Csv
   {
     def this( f:String ) = this( new File(f) )
     
-    val csv = new SimpleCsv(filePath)
-    protected var colTypes : Seq[TypeCode] = null
+    val csv = new DelimitedLineReader(filePath)
+    protected var colTypes : Option[Seq[TypeCode]] = None
     // These three (identical) methods provide clues to the parser for how to assign types for each column
-    def setColTypes( newColTypes:Seq[TypeCode] ) = colTypes = newColTypes
+    def setColTypes( newColTypes:Seq[TypeCode] ) = colTypes = Some(newColTypes)
     def setColTypes( newColTypes:String ) : Unit = setColTypes( newColTypes.split(",").toArray.map(strToTypeCode) )
     def as( newColTypes:String ) = { setColTypes(newColTypes); this }
     
@@ -46,7 +91,8 @@ object Csv
      **/
     protected def columnSource = 
     {
-      val cols = new TempStringDataFrame( colTypes )
+      require( colTypes.isDefined, "Column types must be defined before reading from a DataFrameCsv" )
+      val cols = new TempStringDataFrame( colTypes.get )
       csv.iterator.zipWithIndex.foreach
       {
         _ match {

@@ -14,9 +14,10 @@ import org.ggscala.test.TestUtils
 
 class SimpleCsvSpec extends FlatSpec with ShouldMatchers {
   
-  "A SimpleCsv" should "iterate over List[String]" in
+  "A DelimitedLineReader" should "iterate over List[String]" in
   {
-  	val csv = new SimpleCsv( CsvSpec.TestDataFile1 )
+  	val csv = new DelimitedLineReader( CsvSpec.TestDataFile1 )
+  	var lineCount = 0
   	for( v <- csv.iterator )
   	{
   	  v should have length (2)
@@ -24,9 +25,29 @@ class SimpleCsvSpec extends FlatSpec with ShouldMatchers {
   	  // but it's fun to test
   	  for( v2 <- v )
   	    v2 should have { 'class (classOf[String]) }
+  	  lineCount += 1
   	}
+  	lineCount should be (6)
   }
   
+  it should "read files with arbitrary delimiters, comments, and metadata" in
+  {
+    val csv = new DelimitedLineReader( new File(CsvSpec.TestDataFile2), delimiter="\\|",
+        metadataFilter={v:String => v.startsWith("##")},
+        skipFilter={v:String => v.startsWith("#")} )
+    var lineCount = 0
+    for( v <- csv.iterator )
+    {
+      v should have length (2)
+      // Scala's static type system already asserts the following
+      // but it's fun to test
+      for( v2 <- v )
+        v2 should have { 'class (classOf[String]) }
+      lineCount += 1
+    }
+    lineCount should be (6)
+    csv.metadata should have length (1)
+  }
 }
   
 class DataFrameCsvSpec extends FlatSpec with ShouldMatchers {
@@ -64,6 +85,7 @@ class DataFrameCsvSpec extends FlatSpec with ShouldMatchers {
 
 object CsvSpec {
   val TestDataFile1 = TestUtils getDataFile "simple_csv_test.csv"
+  val TestDataFile2 = TestUtils getDataFile "comment_csv_test.csv"
   
   def main(args:Array[String]) = 
   {

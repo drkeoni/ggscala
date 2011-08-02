@@ -31,7 +31,7 @@ object DataColumn {
     def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) : DataVector[DataType]
   }
   
-  /** A DataVector which wraps an Iterable */
+  /** A DataVector which wraps a Seq */
   class IterableDataVector[T]( protected val values:Seq[T] ) extends DataVector[T] {
     override type DataType = T
     protected def factory( vals:Seq[DataType] ) : DataVector[DataType] = new IterableDataVector(vals)
