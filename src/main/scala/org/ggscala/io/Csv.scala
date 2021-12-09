@@ -69,7 +69,7 @@ object Csv
     def this( f:String ) = this( new File(f) )
     
     callbacks += LineReaderCallback( metadataFilter, {l=>metadata+=l} )
-    callbacks += LineReaderCallback( skipFilter, {l=>Unit} )
+    callbacks += LineReaderCallback( skipFilter, {l=>()} )
     val metadata = new ListBuffer[String]
   }
 

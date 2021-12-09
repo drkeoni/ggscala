@@ -5,6 +5,7 @@
 package org.ggscala.model
 
 import scala.collection.mutable.HashMap
+import scala.reflect.ClassTag
 
 import org.ggscala.model.DataColumn.DataVector
 
@@ -48,7 +49,7 @@ object Factor
      * When concatenating two vectors of factors we marshal back to string and 
      * then back to factors to normalize the factors (simple appending wouldn't work).
      */
-    def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) =
+    def cbind( data:DataVector[DataType] )( implicit ev:ClassTag[DataType] ) =
       new FactorVector( (_values.iterator ++ data.iterator).toArray.map( _.toString ) )
     
     override def factorToString(id:Int) = id2str(id)

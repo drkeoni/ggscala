@@ -4,13 +4,14 @@
  */
 package org.ggscala.model
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest._
+import flatspec._
+import matchers._
 
 import org.ggscala.model.DataColumn.StringVector
 import org.ggscala.test.TestUtils
 
-class DataVectorSpec extends FlatSpec with ShouldMatchers {
+class DataVectorSpec extends AnyFlatSpec with should.Matchers {
   
   "A StringVector" should "be simple to construct" in
   {

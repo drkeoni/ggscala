@@ -5,14 +5,15 @@
 package org.ggscala.io
 
 import java.io.File
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest._
+import flatspec._
+import matchers._
 import org.ggscala.io.Csv._
 import org.ggscala.model.MultiColumnSource._
 import org.ggscala.model.TypeCode._
 import org.ggscala.test.TestUtils
 
-class SimpleCsvSpec extends FlatSpec with ShouldMatchers {
+class SimpleCsvSpec extends AnyFlatSpec with should.Matchers {
   
   "A DelimitedLineReader" should "iterate over List[String]" in
   {
@@ -50,7 +51,7 @@ class SimpleCsvSpec extends FlatSpec with ShouldMatchers {
   }
 }
   
-class DataFrameCsvSpec extends FlatSpec with ShouldMatchers {
+class DataFrameCsvSpec extends AnyFlatSpec with should.Matchers {
     
   "A DataFrameCsv" should "have selectors" in
   {

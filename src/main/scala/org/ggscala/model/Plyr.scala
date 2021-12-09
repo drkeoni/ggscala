@@ -5,6 +5,7 @@
 package org.ggscala.model
 
 import scala.collection.mutable.HashMap
+import scala.reflect.ClassTag
 
 import org.ggscala.model.MultiColumnSource._
 import org.ggscala.model.Factor._
@@ -21,9 +22,9 @@ object Plyr {
    *  specified by split, apply a function to each partition, and combine the
    *  results in a final data source.
    */
-  def ddply[X:ClassManifest]( data:MultiColumnSource, split:Seq[String], f: MultiColumnSource => DataFrame ) : DataFrame =
+  def ddply[X:ClassTag]( data:MultiColumnSource, split:Seq[String], f: MultiColumnSource => DataFrame ) : DataFrame =
   {
-    // the X:ClassManifest in the signature is to allow overloading with a function as a parameter
+    // the X:ClassTag in the signature is to allow overloading with a function as a parameter
     // see e.g. http://stackoverflow.com/questions/3307427/scala-double-definition-2-methods-have-the-same-type-erasure
     def f2 : MultiColumnSource => Option[DataFrame] = { mcs:MultiColumnSource => Some(f(mcs)) }
     ddply(data,split,f2)
