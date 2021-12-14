@@ -4,12 +4,13 @@
  */
 package org.ggscala.model
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest._
+import flatspec._
+import matchers._
 import org.ggscala.test.TestUtils
 import org.ggscala.model.DataFrame._
 
-class DataFrameSpec extends FlatSpec with ShouldMatchers {
+class DataFrameSpec extends AnyFlatSpec with should.Matchers {
   
   "A MemoryDataFrame" should "be simple to construct" in
   {

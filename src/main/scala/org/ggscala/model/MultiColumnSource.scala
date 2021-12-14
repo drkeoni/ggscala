@@ -31,7 +31,7 @@ object MultiColumnSource
     def rowIterator : Iterator[IndexedSeq[Any]] = new Iterator[IndexedSeq[Any]] {
       val _iterators = names.map( $a(_).iterator )
       def hasNext = _iterators.forall(_.hasNext)
-      def next = _iterators.foldLeft(new ArrayBuffer[Any]())( (l,i) => l += i.next )
+      def next = _iterators.foldLeft(new ArrayBuffer[Any]())( (l,i) => l += i.next ).toIndexedSeq
     }
   }
   

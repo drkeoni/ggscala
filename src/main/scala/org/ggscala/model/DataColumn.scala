@@ -4,6 +4,8 @@
  */
 package org.ggscala.model
 
+import scala.reflect.ClassTag
+
 import org.ggscala.model.TypeCode._
 import org.ggscala.model.Factor._
 
@@ -28,7 +30,7 @@ object DataColumn {
   {
     type DataType
     /** Concatenate a data vector with this data vector. */
-    def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) : DataVector[DataType]
+    def cbind( data:DataVector[DataType] )( implicit ev:ClassTag[DataType] ) : DataVector[DataType]
   }
   
   /** A DataVector which wraps a Seq */
@@ -38,7 +40,7 @@ object DataColumn {
     override def iterator = values.iterator
     override def apply( idx:Int ) = values(idx)
     override def length = values.length
-    def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) = 
+    def cbind( data:DataVector[DataType] )( implicit ev:ClassTag[DataType] ) = 
       factory( values.map(_.asInstanceOf[DataType]) ++ data.iterator )
   }
   
@@ -54,7 +56,7 @@ object DataColumn {
     // enough to work out the right type signatures
     // but what this means in the end is that a StringVector can cbind a StringVector and produce a StringVector
     // ...and no new code is written
-    def cbind( data:DataVector[DataType] )( implicit ev:ClassManifest[DataType] ) = 
+    def cbind( data:DataVector[DataType] )( implicit ev:ClassTag[DataType] ) = 
       factory( Array.concat( values.asInstanceOf[Array[DataType]], data.asInstanceOf[ArrayDataVector[DataType]].values ) )
   }
   

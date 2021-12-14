@@ -4,15 +4,16 @@
  */
 package org.ggscala.model
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest._
+import flatspec._
+import matchers._
 
 import org.ggscala.model.DataFrame._
 import org.ggscala.model.MultiColumnSource.MultiColumnSource
 import org.ggscala.model.Plyr._
 import org.ggscala.test.TestUtils
 
-class PlyrSpec extends FlatSpec with ShouldMatchers {
+class PlyrSpec extends AnyFlatSpec with should.Matchers {
   
   def mean(v:Iterable[Double]) = {
     val v2 = v.toArray
